@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>chassia widget test</title>
+<style>
+  body { font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #1b1c21; background: #ffffff; }
+  h1 { font-size: 1.5rem; margin: 0 0 .5rem; }
+  p { margin: .75rem 0; }
+  code { background: #f1f1f4; padding: 0 .3em; border-radius: 4px; overflow-wrap: anywhere; }
+  .muted { color: #5c5e6b; }
+</style>
+</head>
+<body>
+<h1>chassia widget test</h1>
+<p class="muted">A plain page on a site chassia does not host, for trying the assistant's script tag on a real outside address.</p>
+<p id="status">Add <code>?key=csk_…</code> to this page's address to load the assistant.</p>
+<noscript><p>JavaScript is off, so the assistant cannot load.</p></noscript>
+<script>
+  // The script tag exactly as the Install panel renders it (chassia repo,
+  // packages/module-chatbot/src/snippet.ts, widgetSnippet):
+  //   src="https://chat.chassia.com/chat/widget/v1.js"
+  //   data-site-key="csk_..."  data-origin="https://chat.chassia.com"
+  //   async  crossorigin="anonymous"
+  // The key comes from this page's address, so nothing tenant-specific is kept
+  // here. No other script runs on this page.
+  (function () {
+    var ORIGIN = 'https://chat.chassia.com';
+    var status = document.getElementById('status');
+    var key = (new URLSearchParams(window.location.search).get('key') || '').trim();
+    if (!key) return;
+    // The same shape the server checks before a lookup (siteKey.ts, looksLikeSiteKey).
+    if (!/^csk_[A-Za-z0-9_-]{17,123}$/.test(key)) {
+      status.textContent = 'That does not look like a site key. It starts with csk_ and is copied from the Install panel.';
+      return;
+    }
+    var tag = document.createElement('script');
+    tag.setAttribute('src', ORIGIN + '/chat/widget/v1.js');
+    tag.setAttribute('data-site-key', key);
+    tag.setAttribute('data-origin', ORIGIN);
+    tag.setAttribute('async', '');
+    tag.setAttribute('crossorigin', 'anonymous');
+    tag.onerror = function () {
+      status.textContent = 'The assistant script did not load from ' + ORIGIN + '.';
+    };
+    document.body.appendChild(tag);
+    status.textContent = 'Loading the assistant. It appears in the corner of this page. If it does not, check that ' +
+      window.location.hostname + ' is declared on the assistant\'s Install panel.';
+  })();
+</script>
+</body>
+</html>
